@@ -1,6 +1,20 @@
 equation  = @(x) x^2;
+method_function = @get_area_with_simposn_1_3;
+%get the equation from the string and convert it to an anonymus function
+%using str2sym to string to sym function and matlabFunction from
+%symfunction to anonymus function
+% equation_string = input("pls enter the equation: ", "s");
+% equation = matlabFunction(str2sym(equation_string));
+% method_to_use = input("pls enter the integration method available [get_area_with_simposn_1_3, get_area_with_simposn_3_8, get_trap_area_with_formula] : ", "s")
+% %create a map to put all the functions and get the one to use with the
+% %method_to_uses string, map is {string => function}
+% map = containers.Map();
+% map("get_area_with_simposn_1_3") = @get_area_with_simposn_1_3;
+% map("get_area_with_simposn_3_8") = @get_area_with_simposn_3_8;
+% map("get_trap_area_with_formula") = @get_trap_area_with_formula;
+% method_function = map(method_to_use);
 
-[area, x_points, y_points] = get_area_below_curve(equation, @get_area_with_simposn_1_3,...
+[area, x_points, y_points] = get_area_below_curve(equation, method_function,...
                                                   4, 0, 10);
  disp(area)
  plot(x_points, y_points)
@@ -17,7 +31,8 @@ function [area, all_x_points, all_y_points] = get_area_below_curve(equation,...
     end
     for i = 2 : length(points_in_x)
        [area, small_area_x_points, small_area_y_points] = strategy_small_area_fun(equation, points_in_x(i - 1),...
-                                                            points_in_x(i), points_in_x(i) - points_in_x(i - 1) );
+                                                                                  points_in_x(i),...
+                                                                                  points_in_x(i) - points_in_x(i - 1));
        area_acum = area_acum + area;
        points_x = [points_x, small_area_x_points];
        points_y = [points_y, small_area_y_points];
@@ -35,7 +50,7 @@ function [area, x_points, y_points] = get_area_with_simposn_1_3(equation,left_po
                right_point];
    y_points = [equation(left_point), equation(left_point + simpson_1_3_height), equation(right_point)];
    area = (simpson_1_3_height / 3 ) * (y_points(1) + 4 * y_points(2) + y_points(3));
-    % taking that the equation for parabola it ax^2 + bx + c then
+    
     equations = [x_points(1)^2, x_points(1), 1;...
                 x_points(2)^2, x_points(2), 1;...
                 x_points(3)^2, x_points(3), 1];
