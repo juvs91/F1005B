@@ -1,5 +1,5 @@
 equation  = @(x) x^2;
-method_function = @get_area_with_simposn_1_3;
+%method_function = @get_area_with_simposn_1_3;
 %get the equation from the string and convert it to an anonymus function
 %using str2sym to string to sym function and matlabFunction from
 %symfunction to anonymus function
@@ -8,11 +8,11 @@ method_function = @get_area_with_simposn_1_3;
 % method_to_use = input("pls enter the integration method available [get_area_with_simposn_1_3, get_area_with_simposn_3_8, get_trap_area_with_formula] : ", "s")
 % %create a map to put all the functions and get the one to use with the
 % %method_to_uses string, map is {string => function}
-% map = containers.Map();
-% map("get_area_with_simposn_1_3") = @get_area_with_simposn_1_3;
-% map("get_area_with_simposn_3_8") = @get_area_with_simposn_3_8;
-% map("get_trap_area_with_formula") = @get_trap_area_with_formula;
-% method_function = map(method_to_use);
+ map = containers.Map();
+ map("get_area_with_simposn_1_3") = @get_area_with_simposn_1_3;
+ map("get_area_with_simposn_3_8") = @get_area_with_simposn_3_8;
+ map("get_trap_area_with_formula") = @get_trap_area_with_formula;
+ method_function = map(method_to_use);
 
 [area, x_points, y_points] = get_area_below_curve(equation, method_function,...
                                                   4, 0, 10);
@@ -44,14 +44,14 @@ end
 
 function [area, x_points, y_points] = get_area_with_simposn_1_3(equation,left_point,...
                                                                 right_point, height)
-   simpson_1_3_height = height/2;
-   x_points = [left_point, ...
-               left_point + simpson_1_3_height,...
-               right_point];
+   simpson_1_3_height = (right_point - left_point) /2;
+   x_points = [left_point, ... % punto a
+               left_point + simpson_1_3_height,... % middle point
+               right_point];  % left_point + 2 * simpson_1_3_height
    y_points = [equation(left_point), equation(left_point + simpson_1_3_height), equation(right_point)];
    area = (simpson_1_3_height / 3 ) * (y_points(1) + 4 * y_points(2) + y_points(3));
-    
-    equations = [x_points(1)^2, x_points(1), 1;...
+     
+   equations = [x_points(1)^2, x_points(1), 1;...
                 x_points(2)^2, x_points(2), 1;...
                 x_points(3)^2, x_points(3), 1];
             
@@ -60,6 +60,7 @@ function [area, x_points, y_points] = get_area_with_simposn_1_3(equation,left_po
                 y_points(3)];
             
     coef = equations \ results;
+    % ax^2 + bx + c
     parabola_function = @(x) coef(1)*x^2 + coef(2)*x + coef(3);
     y_parabola_points = [parabola_function(left_point),... 
                          parabola_function(left_point + simpson_1_3_height),...
@@ -72,7 +73,7 @@ function [area, x_points, y_points] = get_area_with_simposn_3_8(equation,left_po
                                                                 right_point, height)
    
                                         
-   simpson_1_8_height = height/3;
+   simpson_1_8_height = (right_point - left_point)/3;
    
    x_points = [left_point,... 
               left_point + simpson_1_8_height,...
@@ -167,27 +168,41 @@ function [] = calculate(initial_point, last_point, index)
     curve_longitude = get_curve_area(fun_first_dx, initial_point, last_point)
     radious = get_radious(fun_first_dx, fun_second_dx, index)
     [min, max] = get_min_max(coeficients)
-    critic_point = get_critic_point(fun_first_dx, fun_second_dx, min, max)
+    [critic_points_x, critic_points_y] = get_critic_point(fun_first_dx, fun_second_dx, min, max)
+    distance = get_grades_distance(fun_first_dx, critic_points_x(1), critic_points_y(1))
+    plot(critic_points_x, critic_points_y)
     disp(curve_longitude)
     disp(radious)
 end
+
+function [distance] = get_grades_distance(fun_first_dx, critic_point_x,critic_point_y)
+%calculate tan critic_point_x and critic_point_y
+%calculate distance between gradas(no se ponerlo en ingles) and the tan
+end
+
 
 function [min, max] = get_min_max(coef)
     min = (-coef(2) - sqrt(coef(2)^2 - 3 * coef(1) * coef(3))) / (3 * coef(1));
     max = (-coef(2) + sqrt(coef(2)^2 - 3 * coef(1) * coef(3))) / (3 * coef(1));
 end
 
-function [critic_point] = get_critic_point(fun_first_dx, fun_second_dx, min, max)
+function [critic_points_x, critic_points_y] = get_critic_point(fun_first_dx, fun_second_dx, min, max)
+    index = 1
+    points_y = []
+    points_x = []
     for i = min : 1 : max
         if get_radious(fun_first_dx, fun_second_dx, i) < 50
-            critic_point = i;
-            break;
+            points_y(index) = i
+            % not sure if index or i
+            points_x(index) = index
         end
     end
+    critic_points_y = points_y
+    critic_points_x = points_x
 end
 
 function curve_longitude = get_curve_area(fun_first_dx, initial_point, last_point)
-    curve_longitude_function = @(x) sqrt(1 + fdx(x).^2)
+    curve_longitude_function = @(x) sqrt(1 + fun_first_dx(x).^2)
     curve_longitude = integral(curve_longitude_function, initial_point, last_point)
 end
 
